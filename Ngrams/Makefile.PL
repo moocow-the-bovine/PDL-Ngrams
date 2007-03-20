@@ -1,22 +1,26 @@
+use PDL::Core::Dev;
 use ExtUtils::MakeMaker;
+PDL::Core::Dev->import();
 
-WriteMakefile(
-	      NAME         => 'PDL::Ngrams',
-	      VERSION_FROM => 'Ngrams.pm',
-	      ABSTRACT     => 'N-Gram utilities for PDL',
-	      AUTHOR       => 'Bryan Jurish <moocow@ling.uni-potsdam.de>',
-	      PREREQ_PM => {
-			    PDL => '2.4.2', ##-- ensure PDL-ability
-			   },
-	      realclean => {
-			    FILES => '*~ *.tmp README.txt',
-			   },
-	     );
+$package = ["ngutils.pd",ngutils,PDL::Ngrams::ngutils];
+%hash = pdlpp_stdargs($package);
+
+$hash{AUTHOR} = 'Bryan Jurish';
+$hash{ABSTRACT} = 'Low-level N-Gram utilities for PDL';
+$hash{VERSION_FROM} = 'ngutils.pd';
+$hash{PREREQ_PM}{PDL} = '2.4.2'; ##-- ensure PDL-ability
+push(@{$hash{LIBS}}, '-lm');
+#$hash{INC} .= '';
+$hash{DIR} = [];
+#$hash{OBJECT} .= '';
+$hash{realclean}{FILES} .= '*~ *.tmp README.txt';
+
+WriteMakefile(%hash);
 
 sub MY::depend {
   package MY;
   my $inherited = shift->SUPER::depend(@_);
-  if (1) {
+  if (0) {
     $inherited .= (
 		   "\n\n"
 		   ."dist: README.txt\n"
@@ -66,4 +70,8 @@ sub MY::top_targets {
   package MY;
   my $inherited = shift->SUPER::top_targets(@_);
   $inherited;
+}
+
+sub MY::postamble {
+  pdlpp_postamble($package);
 }

@@ -9,12 +9,12 @@
 ^pdl-core$
 ^xs-cookbook$
 ^graveyard\.
-\bMakefile$
+^Makefile$
 ^testme\.perl$
-\bngutils.pm$
-\bngutils.xs$
-\bngutils.c$
-\bREADME\.pod$
+^ngutils.pm$
+^ngutils.xs$
+^ngutils.c$
+^README\.pod$
 \.html$
 \.tmp$
 ^#Makefile#$
