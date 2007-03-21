@@ -7,6 +7,14 @@ use PDL::Ngrams;
 BEGIN{ $, = ' '; our $eps=1e-6; }
 
 ##---------------------------------------------------------------------
+## utils: as for common.plt
+
+sub isok {
+  my ($lab,$test) = @_;
+  print "$lab: ", ($test ? "ok" : "NOT ok"), "\n";
+}
+
+##---------------------------------------------------------------------
 ## test: rlevec, rldvec
 
 sub rlevec_data {
@@ -22,12 +30,12 @@ sub test_rlevec {
   rlevec_data;
   our ($puf,$pur) = rlevec($ps);
   our $ps2        = rldvec($puf,$pur);
-  print all($ps==$ps2) ? "ok" : "not ok", "\n";
+  print "test_rlevec: ", all($ps==$ps2) ? "ok" : "not ok", "\n";
 }
 #test_rlevec;
 
 ##---------------------------------------------------------------------
-## test: rlevec, rldvec: native
+## test: rlend, rldnd: perl wrappers for clump() + rlevec(), rldvec()
 
 sub rlevec_data_nd {
   our $pnd1 = (1  *(sequence(long, 2,3  )+1))->slice(",,*3");
@@ -39,49 +47,88 @@ sub rlevec_data_nd {
   our $ps   = $pnd; ##-- alias
 }
 
-##-- good general n-dimensional method, but keep 'rlevec' as 2d-optimized version
-sub test_rlevec_native {
-  #rlevec_data();
-  rlevec_data_nd();
+sub test_rle_nd {
+  #rlevec_data;      ##-- base case   : ND methods should handle 2d data correctly: ok
+  rlevec_data_nd();  ##-- general case: ND data
 
-  our @pdims = $ps->dims;
-  our $pdimN = $#pdims;   ##-- "-1" should work, too
-  our $N     = $ps->dim($pdimN);
-
-  our $ps_prev    = $ps->mv($pdimN,0)->rotate(1)->mv(0,$pdimN);
-  our $ps_ismatch = zeroes(byte,@pdims);
-  $ps->eq($ps_prev, $ps_ismatch, 0);
-  $ps_ismatch->dice_axis($pdimN,0) .= 0; ##-- first element is NEVER a match
-  #our $ps_nomatch = !$ps_ismatch;       ##-- not needed
-
-  ##-- get number of non-redundant values
-  #our $ps_ismatch_andover = $ps_ismatch->andover;
-  #our $ps_nomatch_orover  = !$ps_ismatch_andover;  ## == $ps_nomatch->orover();
-  ##our $nvals = $ps_nomatch_orover->sumover->max;
-  #our $valni = $ps_nomatch_orover->cumusumover->where($ps_nomatch_orover);
-  #
-  ##-- STILL BUGGY
-  #our $ps_ismatch_andover = $ps_ismatch->clump($pdimN)->andover;
-  #our $ps_nomatch_orover  = !$ps_ismatch_andover;
-  #our $vals   = $ps->dice_axis($pdimN,$valni);
-  #our $counts = $ps_ismatch_andover->index($valni)+1;
-  ##
-  ##--
-  our $ps_ismatch_andover =  $ps_ismatch->clump($pdimN)->andover->convert(long);
-  our $ps_nomatch_orover  = !$ps_ismatch_andover;
-  our $ismatch_offsets    = $ps_ismatch_andover->cumusumover->where($ps_nomatch_orover);
-  our $nomatch_offsets    = $ps_nomatch_orover->cumusumover->where($ps_nomatch_orover);
-  our $val_ni             = $ismatch_offsets + $nomatch_offsets -1;
-
-  our $val_seq             = $ps_nomatch_orover->cumusumover; ##-- dummy, for low-level rle() call
-  our ($val_cts,$val_seqi) = $val_seq->rle();
-
-  ##-- try again: construct input for low-level call to rle()
-  
+  our ($puf,$pur) = rleND($ps);
+  our $ps2        = rldND($puf,$pur);
+  print "test_rlend: ", all($ps==$ps2) ? "ok" : "not ok", "\n";
 }
-test_rlevec_native();
+#test_rle_nd();
 
 
+##---------------------------------------------------------------------
+## test: ng_delimit()
+
+sub test_ng_data {
+  our $toks  = pdl(long,[1, 1,2, 1,2,3, 1,2,3,4   ]);
+  our $toks2d = $toks->slice("*1,")->append((10*$toks)->slice("*1,"))->xchg(0,1);
+  our $beg   = pdl(long,[0, 1,   3,     6         ]);
+  our $end   = pdl(long,[   1,   3,     6,     10 ]);
+
+  our $bos1  = pdl(long,[-1]);
+  our $eos1  = $bos1;
+
+  our $bos2  = pdl(long,[-2,-1]);
+  our $eos2  = pdl(long,[1000,2000]);
+}
+
+sub test_ng_delimit {
+  test_ng_data();
+
+  our $dtoks1 = ng_delimit($toks,$beg,$bos1);
+  our $dtoks1_want = pdl(long,[-1,  1, -1,  1,  2, -1,  1,  2,  3, -1,  1,  2,  3,  4]);
+  print "ng_delimit(1d,nDelim=1): ", (all($dtoks1==$dtoks1_want) ? "ok" : "NOT ok"), "\n";
+
+  our $dtoks2 = ng_delimit($toks,$beg,$bos2);
+  our $dtoks2_want = pdl(long,[-2,-1,  1, -2,-1,  1,  2, -2,-1,  1,  2,  3, -2,-1,  1,  2,  3,  4]);
+  print "ng_delimit(1d,nDelim=2): ", (all($dtoks2==$dtoks2_want) ? "ok" : "NOT ok"), "\n";
+
+  our $dtoks1_2d = ng_delimit($toks2d,$beg,$bos1);
+  our $dtoks1_2d_want = pdl(long,[[-1,  1, -1,  1,  2, -1,  1,  2,  3, -1,  1,  2,  3,  4],
+				  [-1, 10, -1, 10, 20, -1, 10, 20, 30, -1, 10, 20, 30, 40]]);
+  print "ng_delimit(2d,nDelim=1): ", (all($dtoks1_2d==$dtoks1_2d_want) ? "ok": "NOT ok"), "\n";
+
+
+  our $dtoks2_2d = ng_delimit($toks2d,$beg,$bos2);
+  our $dtoks2_2d_want = pdl(long,[[-2,-1,  1, -2,-1,  1,  2, -2,-1,  1,  2,  3, -2,-1,  1,  2,  3,  4],
+				  [-2,-1, 10, -2,-1, 10, 20, -2,-1, 10, 20, 30, -2,-1, 10, 20, 30, 40]]);
+  print "ng_delimit(2d,nDelim=2): ", (all($dtoks2_2d==$dtoks2_2d_want) ? "ok": "NOT ok"), "\n";
+
+  our $dtoks2_2d_sl = ng_delimit($toks2d,$beg->slice(",*2"),$bos2->slice(",*2"));
+  our $dtoks2_2d_sl_want = $dtoks2_2d_want;
+  print "ng_delimit(2d+slices,nDelim=2): ", (all($dtoks2_2d_sl==$dtoks2_2d_sl_want) ? "ok": "NOT ok"), "\n";
+
+}
+#test_ng_delimit();
+
+sub test_ng_undelimit {
+  test_ng_data();
+  our ($boffsets,$delims);
+
+  our $dtoks1 = ng_delimit($toks,$beg,$bos1);
+  our $udtoks1 = ng_undelimit($dtoks1,$beg,$bos1->dim(0));
+  isok("ng_undelimit(toks:1d,nDelims:1)", all($udtoks1==$toks));
+
+  our $dtoks2  = ng_delimit($toks,$beg,$bos2);
+  our $udtoks2 = ng_undelimit($dtoks2,$beg,$bos2->dim(0));
+  isok("ng_undelimit(toks:1d,nDelims:2)", all($udtoks2==$toks));
+
+
+  our $dtoks1_2d  = ng_delimit($toks2d,$beg,$bos1);
+  our $udtoks1_2d = ng_undelimit($dtoks1_2d,$beg,$bos1->dim(0));
+  isok("ng_undelimit(toks:2d,offsets:1d,nDelims:1)", all($udtoks1_2d==$toks2d));
+
+  our $dtoks2_2d  = ng_delimit($toks2d,$beg,$bos2);
+  our $udtoks2_2d = ng_undelimit($dtoks2_2d,$beg,$bos2->dim(0));
+  isok("ng_undelimit(toks:2d,offsets:1d,nDelims:2)", all($udtoks2_2d==$toks2d));
+
+  our $dtoks2_2d_sl  = ng_delimit($toks2d,$beg->slice(",*2"),$bos2->slice(",*2"));
+  our $udtoks2_2d_sl = ng_undelimit($dtoks2_2d_sl,$beg->slice(",*2"),$bos2->dim(0));
+  isok("ng_undelimit(toks:2d,offsets:2d,nDelims:2)", all($udtoks2_2d_sl==$toks2d));
+}
+test_ng_undelimit();
 
 ##---------------------------------------------------------------------
 ## DUMMY
