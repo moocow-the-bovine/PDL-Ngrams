@@ -19,12 +19,15 @@ sub isok {
 
 sub rlevec_data {
   our $p2d  = pdl([[1,2],[3,4],[1,3],[1,2],[3,3]]) if (!defined($p));
-  our $p2ds = $p2d->qsortvec;  ##-- broken in default PDL-2.4.3 (and debian <= 2.4.3-3)
-  #our $p2duv = $p2d->uniqvec; ##-- ought to work too
+  #our $p2ds = $p2d->qsortvec;  ##-- broken in default PDL-2.4.3 (and debian <= 2.4.3-3)
+  #our $p2duv = $p2d->uniqvec; ##-- also broken
+  ##--
+  our $p2ds = _ng_qsortvec($p2d); ##-- workaround
 
   our $p  = $p2d;
   our $ps = $p2ds;
 }
+rlevec_data();
 
 sub test_rlevec {
   rlevec_data;
@@ -128,7 +131,7 @@ sub test_ng_undelimit {
   our $udtoks2_2d_sl = ng_undelimit($dtoks2_2d_sl,$beg->slice(",*2"),$bos2->dim(0));
   isok("ng_undelimit(toks:2d,offsets:2d,nDelims:2)", all($udtoks2_2d_sl==$toks2d));
 }
-test_ng_undelimit();
+#test_ng_undelimit();
 
 ##---------------------------------------------------------------------
 ## DUMMY

@@ -9,6 +9,8 @@ use PDL;
 use PDL::Ngrams::ngutils;
 use strict;
 
+our $VERSION = 0.02;
+
 our @EXPORT_OK =
   (
    @PDL::Ngrams::ngutils::EXPORT_OK,
@@ -16,7 +18,7 @@ our @EXPORT_OK =
   );
 our %EXPORT_TAGS =
   (
-   Func=>[@EXPORT_OK];
+   Func=>[@EXPORT_OK],
   );
 
 our @ISA = qw(PDL::Exporter);
