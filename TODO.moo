@@ -3,6 +3,9 @@
 + Make sure that the pure-perl ngrams() routine is working sensibly
   - maybe figure out how to generalize this sensibly a la threading?
     : NO: do this if & when we need it...
+  - chop it up into (?):
+     - "ngrams()": flat: data(NToks)
+     - and "cooccs()": ND: data(N,NToks) [pre-rotated?  or rotate option?]
 
 + get N-grams into PDL::CCS form, e.g. MUDL::PdlDist::Sparse2d
   - only for bigrams right now: anything else would need a better PDL::CCS

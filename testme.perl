@@ -27,7 +27,7 @@ sub rlevec_data {
   our $p  = $p2d;
   our $ps = $p2ds;
 }
-rlevec_data();
+#rlevec_data();
 
 sub test_rlevec {
   rlevec_data;
@@ -104,7 +104,7 @@ sub test_ng_delimit {
   print "ng_delimit(2d+slices,nDelim=2): ", (all($dtoks2_2d_sl==$dtoks2_2d_sl_want) ? "ok": "NOT ok"), "\n";
 
 }
-#test_ng_delimit();
+test_ng_delimit();
 
 sub test_ng_undelimit {
   test_ng_data();

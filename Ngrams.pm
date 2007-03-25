@@ -19,7 +19,7 @@ our @ISA = qw(PDL::Exporter);
 our @EXPORT_OK =
   (
    (@PDL::Ngrams::ngutils::EXPORT_OK), ##-- inherited
-   qw(ngrams),
+   qw(ngcofreq ngrotate),
    qw(rleND rldND),
   );
 our %EXPORT_TAGS =
@@ -77,65 +77,114 @@ PDL::Ngrams provides basic utilities for tracking N-grams over PDL vectors.
 =cut
 
 ##----------------------------------------------------------------------
-## ngrams()
+## ngcofreq()
 =pod
 
-=head2 ngrams
+=head2 ngcofreq
 
 =for sig
 
-  Signature: (toks(N,NToks); int N; %args) ##-- general case, specifying components
-  Signature: (toks(  NToks); int N; %args) ##-- simple case with only 1 component domain
+  Signature: (toks(NAttrs,N,NToks); %args)
 
-  Returns: ([o]ngramids(N,NNgrams); int [o]ngramfreqs(NNgrams))
+  Returns: ([o]ngramids(NAttrs,N,NNgrams); int [o]ngramfreqs(NNgrams))
 
 Keyword arguments (optional):
 
-  boffsets => $boffsets(NBlocks)   ##-- gives block-offsets in $toks() vector
-  delims   => $delims(NDelims)     ##-- specify delimiters to splice in at block boundaries
+  norotate => $bool,                      ##-- if true, $toks() will NOT be rotated along $N
+  boffsets => $boffsets(NBlocks)          ##-- block-offsets in $toks() along $NToks
+  delims   => $delims(NAttrs,N,NDelims)   ##-- delimiters to splice in at block boundaries
 
-Count N-Grams over a token vector $toks.
-This function really just wraps qsortvec(), ng_delimit(), and rleND().
-
-B<CAVEAT INVOCATOR:>
-Requires a working qsortvec(), which is broken in the stock
-PDL v2.4.3.  Chris Marshall has submitted a patch to fix the
-bug, which is available here (the patch, not the bug):
-
- http://sourceforge.net/tracker/index.php?func=detail&aid=1548824&group_id=612&atid=300612
+Count co-occurrences (esp. N-Grams) over a token vector $toks.
+This function really just wraps ng_delimit(), rotate(), _ng_qsortvec(), and rleND().
 
 =cut
 
-*ngrams = \&PDL::ngrams;
-sub PDL::ngrams {
-  my ($toks,$N,%args) = @_;
+##-- WORKS
+#$N=2;
+#$NToks=5;
+#@adims=qw(4 3);
+#$adslice=join(',',map{"*$_"}@adims);
+#$toks=sequence($NToks,@adims)->slice(",*$N")->mv(0,-1)->mv(0,-1);
+#$beg=pdl(long,[0,$NToks]);
+#$bos=pdl(long,[-1]);
+#$dtoks=ng_delimit($toks->mv(-2,0),$beg->slice(",$adslice,*$N"),$bos->slice(",$adslice,*$N"))->mv(0,-2)
+
+##-- same thing, 1-line:
+#$N=2; $NToks=5; @adims=qw(4 3); $adslice=join(',',map{"*$_"}@adims); $toks=sequence($NToks,@adims)->slice(",*$N")->mv(0,-1)->mv(0,-1); $beg=pdl(long,[0,$NToks]); $bos=pdl(long,[-1]); $dtoks=ng_delimit($toks->mv(-2,0),$beg->slice(",$adslice,*$N"),$bos->slice(",$adslice,*$N"))->mv(0,-2) ##-- OK
+
+##-- new dimensions:
+#$N=2; $NToks=5; @adims=qw(3); $adslice=join(',',map{"*$_"}@adims); $toks=sequence($NToks)->slice("$adslice,*$N,:"); $beg=pdl(long,[0,$NToks]); $bos=pdl(long,[-1])->slice("$adslice,*$N,"); $dtoks=ng_delimit($toks->mv(-1,0),$beg->slice(",$adslice,*$N"),$bos->mv(-1,0))->mv(0,-1)
+
+*PDL::ngrams = \&ngrams;
+sub ngcofreq {
+  my ($toks,%args) = @_;
   ##
-  ##-- sanity check(s)
-  barf('Usage: ngrams($toks,$N,%args)')
-    if (!defined($toks) || !defined($N) || $N <= 0);
-  barf('ngrams(): cannot handle multi-dimensional \$toks')
-    if ($toks->ndims > 1 && ($toks->ndims != 2 || $toks->dim(0) != $N)); ##-- FIXME
+  ##-- sanity checks
+  barf('Usage: ngrams($toks,%args)') if (!defined($toks));
+  $toks = $toks->slice("*1,") while ($toks->ndims < 3);
+  my ($NAttrs,$N,$NToks) = $toks->dims;
   ##
   ##-- splice in some delimiters (maybe)
   my ($dtoks);
   if (defined($args{boffsets}) && defined($args{delims})) {
-    $dtoks = ng_delimit($toks,$args{boffsets},$args{delims});
+    $dtoks = ng_delimit($toks->mv(-1,0),
+			$args{boffsets}->slice(",*$NAttrs,*$N"),
+			$args{delims}->mv(-1,0),
+		       )->mv(0,-1);
   } else {
     $dtoks = $toks;
   }
   ##
-  ##-- get n-gram vector pdl
-  $dtoks     = $dtoks->slice("*$N,") if ($dtoks->ndims == 1);
+  ##-- rotate components (maybe)
+  ##  + TODO: swap the guts of this out to another func
+  ##  (?) skip the @adims crap & just say we want toks(NAttrs,N,NToks) (?)
   my $NDToks = $dtoks->dim(-1);
-  my $ngvecs = append(map {$dtoks->slice("($_)")->rotate(-$_)->slice("*1,")} (0..($N-1)));
-  $ngvecs    = $ngvecs->slice(",0:-$N")->qsortvec;
+  my ($ngvecs);
+  if ($args{norotate}) { $ngvecs=$dtoks->clump(-3); }
+  else                 { $ngvecs=ngrotate($dtoks->clump(-3)); }
   ##
-  ##-- count 'em
-  my ($ngfreq,$ngelts) = rleND($ngvecs);
-  my $ngwhich          = $ngfreq->which();
+  ##-- sort 'em & count 'em
+  my @ngvdims = $ngvecs->dims;
+  $ngvecs     = $ngvecs->clump(-2)->_ng_qsortvec();
+  my ($ngfreq,$ngelts) = rlevec($ngvecs);
+  my $ngwhich          = which($ngfreq);
+  ##
+  ##-- reshape results (using @ngvdims)
+  $ngelts = $ngelts->reshape(@ngvdims);
   ##
   ##.... and return
   return ($ngfreq->index($ngwhich), $ngelts->dice_axis(-1,$ngwhich));
+}
+
+##======================================================================
+## N-Gram construction: rotation
+=pod
+
+=head2 ngrotate
+
+  Signature: (toks(NAttrs,N,NToks); [o]rtoks(NAttrs,N,NToks-N+1))
+
+Create a co-occurrence matrix by rotating a (delimited) token vector $toks().
+Returns a matrix $rtoks() suitable for passing to ngcofreq().
+
+=cut
+
+*PDL::ngrotate = \&ngrotate;
+sub ngrotate {
+  my ($toks,$rtoks) = @_;
+
+  barf("Usage: ngrotate (toks(NAttrs,N,NToks), [o]rtoks(NAttrs,N,NToks-N-1))")
+    if (!defined($toks));
+
+  my ($NAttrs,$N,$NToks) = $toks->dims;
+  $rtoks = zeroes($toks->type, $toks->dims) if (!defined($rtoks));
+  my ($i);
+  foreach $i (0..($N-1)) {
+    $rtoks->dice_axis(1,$i) .= $toks->dice_axis(1,$i)->mv(2,0)->rotate(-$i)->mv(0,2);
+  }
+  $rtoks = $rtoks->xchg(2,0)->slice("0:-$N")->xchg(0,2);
+
+  return $rtoks;
 }
 
 
@@ -174,8 +223,8 @@ See also: PDL::Slices::rle, PDL::Ngrams::ngutils::rlevec
 
 =cut
 
-*rleND = \&PDL::rleND;
-sub PDL::rleND {
+*PDL::rleND = \&rleND;
+sub rleND {
   my $data   = shift;
   my @vdimsN = $data->dims;
 
@@ -211,8 +260,8 @@ See also: PDL::Slices::rld, PDL::Ngrams::ngutils::rldvec
 
 =cut
 
-*rldND = \&PDL::rldND;
-sub PDL::rldND {
+*PDL::rldND = \&rldND;
+sub rldND {
   my ($counts,$elts) = (shift,shift);
   my @vdimsN        = $elts->dims;
 
