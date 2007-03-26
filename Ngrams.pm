@@ -86,7 +86,7 @@ PDL::Ngrams provides basic utilities for tracking N-grams over PDL vectors.
 
   Signature: (toks(@adims,N,NToks); %args)
 
-  Returns: ([o]ngramids(@adims,N,NNgrams); int [o]ngramfreqs(NNgrams))
+  Returns: (int [o]ngramfreqs(NNgrams); [o]ngramids(@adims,N,NNgrams))
 
 Keyword arguments (optional):
 
@@ -95,25 +95,9 @@ Keyword arguments (optional):
   delims   => $delims(@adims,N,NDelims)   ##-- delimiters to splice in at block boundaries
 
 Count co-occurrences (esp. N-Grams) over a token vector $toks.
-This function really just wraps ng_delimit(), rotate(), _ng_qsortvec(), and rleND().
+This function really just wraps ng_delimit(), ng_rotate(), _ng_qsortvec(), and rlevec().
 
 =cut
-
-##-- WORKS
-#$N=2;
-#$NToks=5;
-#@adims=qw(4 3);
-#$adslice=join(',',map{"*$_"}@adims);
-#$toks=sequence($NToks,@adims)->slice(",*$N")->mv(0,-1)->mv(0,-1);
-#$beg=pdl(long,[0,$NToks]);
-#$bos=pdl(long,[-1]);
-#$dtoks=ng_delimit($toks->mv(-2,0),$beg->slice(",$adslice,*$N"),$bos->slice(",$adslice,*$N"))->mv(0,-2)
-
-##-- same thing, 1-line:
-#$N=2; $NToks=5; @adims=qw(4 3); $adslice=join(',',map{"*$_"}@adims); $toks=sequence($NToks,@adims)->slice(",*$N")->mv(0,-1)->mv(0,-1); $beg=pdl(long,[0,$NToks]); $bos=pdl(long,[-1]); $dtoks=ng_delimit($toks->mv(-2,0),$beg->slice(",$adslice,*$N"),$bos->slice(",$adslice,*$N"))->mv(0,-2) ##-- OK
-
-##-- new dimensions:
-#$N=2; $NToks=5; @adims=qw(3); $adslice=join(',',map{"*$_"}@adims); $toks=sequence($NToks)->slice("$adslice,*$N,:"); $beg=pdl(long,[0,$NToks]); $bos=pdl(long,[-1])->slice("$adslice,*$N,"); $dtoks=ng_delimit($toks->mv(-1,0),$beg->slice(",$adslice,*$N"),$bos->mv(-1,0))->mv(0,-1)
 
 *PDL::ng_cofreq = \&ng_cofreq;
 sub ng_cofreq {

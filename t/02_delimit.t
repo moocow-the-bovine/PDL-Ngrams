@@ -1,5 +1,5 @@
 # -*- Mode: CPerl -*-
-# t/01_rlevec.t: test ng_delimit(), ng_undelimit()
+# t/02_delimit.t: test ng_delimit(), ng_undelimit()
 
 $TEST_DIR = './t';
 #use lib qw(../blib/lib ../blib/arch); $TEST_DIR = '.'; # for debugging

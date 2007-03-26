@@ -104,7 +104,7 @@ sub test_ng_delimit {
   print "ng_delimit(2d+slices,nDelim=2): ", (all($dtoks2_2d_sl==$dtoks2_2d_sl_want) ? "ok": "NOT ok"), "\n";
 
 }
-test_ng_delimit();
+#test_ng_delimit();
 
 sub test_ng_undelimit {
   test_ng_data();
@@ -132,6 +132,74 @@ sub test_ng_undelimit {
   isok("ng_undelimit(toks:2d,offsets:2d,nDelims:2)", all($udtoks2_2d_sl==$toks2d));
 }
 #test_ng_undelimit();
+
+##---------------------------------------------------------------------
+## test: many attributes
+
+sub test_data_nd {
+  my @nd_adims = @_;
+  our $N=2;
+  our $NToks=5;
+  ##--
+  #our @adims = qw(3);
+  our @adims  = @_;
+  ##--
+  our $adslice = join(',',map{"*$_"}@adims);
+  $adslice    .= ',' if ($adslice ne '');
+  our $toks    = sequence($NToks)->slice("$adslice");
+  our $toksN   = $toks->slice("*$N,")->mv(0,-2);
+  our $beg     = pdl(long,[0,$NToks]);
+  our $bos     = pdl(long,[-1])->slice("${adslice}*$N,");
+  our $dtoks   = ng_delimit($toksN->mv(-1,0), $beg->slice(",${adslice}*$N"), $bos->mv(-1,0))->mv(0,-1);
+}
+
+
+##---------------------------------------------------------------------
+## test: ng_rotate()
+
+sub test_rotate {
+  test_ng_data();
+  #test_data_nd();
+
+  our $rdtoks = ng_rotate($toks->slice("*$N,"));
+}
+#test_rotate();
+
+##---------------------------------------------------------------------
+## test: ng_cofreq()
+
+sub test_cofreq {
+  test_ng_data();
+  #test_data_nd(qw(3 4));
+  #test_data_nd(qw());
+
+  our ($ngfreq,$ngelts,$N);
+  $N=2;
+  ##-- 1d, N=2
+  ($ngfreq,$ngelts) = ng_cofreq($toks->slice("*$N,"), boffsets=>$beg, delims=>$bos1->slice("*$N,"));
+
+  our $ngfreq_1d_n2_want = pdl(long,[4,1,3,1,2,1,1]);
+  our $ngelts_1d_n2_want = pdl(long,[[-1,1],[1,-1],[1,2],[2,-1],[2,3],[3,-1],[3,4]]);
+  isok("ng_cofreq(toks:1d,N:2,+delims):freq", all($ngfreq==$ngfreq_1d_n2_want));
+  isok("ng_cofreq(toks:1d,N:2,+delims):elts", all($ngelts==$ngelts_1d_n2_want));
+
+  ##-- 2d, N=2
+  our $atoks    = $toks->slice("*1,")->append($toks->slice("*1,")*10)->append($toks->slice("*1,")*100);
+  our $atoks_sl = $atoks->slice(",*$N,");
+  our $abos1_sl = $bos1->append($bos1*10)->append($bos1*100)->slice(",*$N,*1");
+  ($ngfreq,$ngelts) = ng_cofreq($atoks_sl, boffsets=>$beg, delims=>$abos1_sl);
+
+  our $ngfreq_2d_n2_want = $ngfreq_1d_n2_want;
+  our $ngelts_2d_n2_want = ($ngelts_1d_n2_want
+			    ->append($ngelts_1d_n2_want*10)
+			    ->append($ngelts_1d_n2_want*100)
+			    ->reshape(2,3,7)
+			    ->xchg(0,1));
+  isok("ng_cofreq(toks:1d,N:2,+delims):freq", all($ngfreq==$ngfreq_2d_n2_want));
+  isok("ng_cofreq(toks:1d,N:2,+delims):elts", all($ngelts==$ngelts_2d_n2_want));
+}
+test_cofreq();
+
 
 ##---------------------------------------------------------------------
 ## DUMMY
