@@ -19,7 +19,7 @@ our @ISA = qw(PDL::Exporter);
 our @EXPORT_OK =
   (
    (@PDL::Ngrams::ngutils::EXPORT_OK), ##-- inherited
-   qw(ngcofreq ngrotate),
+   qw(ng_cofreq ng_rotate),
    qw(rleND rldND),
   );
 our %EXPORT_TAGS =
@@ -77,22 +77,22 @@ PDL::Ngrams provides basic utilities for tracking N-grams over PDL vectors.
 =cut
 
 ##----------------------------------------------------------------------
-## ngcofreq()
+## ng_cofreq()
 =pod
 
-=head2 ngcofreq
+=head2 ng_cofreq
 
 =for sig
 
-  Signature: (toks(NAttrs,N,NToks); %args)
+  Signature: (toks(@adims,N,NToks); %args)
 
-  Returns: ([o]ngramids(NAttrs,N,NNgrams); int [o]ngramfreqs(NNgrams))
+  Returns: ([o]ngramids(@adims,N,NNgrams); int [o]ngramfreqs(NNgrams))
 
 Keyword arguments (optional):
 
   norotate => $bool,                      ##-- if true, $toks() will NOT be rotated along $N
   boffsets => $boffsets(NBlocks)          ##-- block-offsets in $toks() along $NToks
-  delims   => $delims(NAttrs,N,NDelims)   ##-- delimiters to splice in at block boundaries
+  delims   => $delims(@adims,N,NDelims)   ##-- delimiters to splice in at block boundaries
 
 Count co-occurrences (esp. N-Grams) over a token vector $toks.
 This function really just wraps ng_delimit(), rotate(), _ng_qsortvec(), and rleND().
@@ -115,20 +115,21 @@ This function really just wraps ng_delimit(), rotate(), _ng_qsortvec(), and rleN
 ##-- new dimensions:
 #$N=2; $NToks=5; @adims=qw(3); $adslice=join(',',map{"*$_"}@adims); $toks=sequence($NToks)->slice("$adslice,*$N,:"); $beg=pdl(long,[0,$NToks]); $bos=pdl(long,[-1])->slice("$adslice,*$N,"); $dtoks=ng_delimit($toks->mv(-1,0),$beg->slice(",$adslice,*$N"),$bos->mv(-1,0))->mv(0,-1)
 
-*PDL::ngrams = \&ngrams;
-sub ngcofreq {
+*PDL::ng_cofreq = \&ng_cofreq;
+sub ng_cofreq {
   my ($toks,%args) = @_;
   ##
   ##-- sanity checks
   barf('Usage: ngrams($toks,%args)') if (!defined($toks));
-  $toks = $toks->slice("*1,") while ($toks->ndims < 3);
-  my ($NAttrs,$N,$NToks) = $toks->dims;
+  my @adims      = $toks->dims;
+  my ($N,$NToks) = splice(@adims, $#adims-1, 2);
   ##
   ##-- splice in some delimiters (maybe)
   my ($dtoks);
   if (defined($args{boffsets}) && defined($args{delims})) {
+    my $adslice = (@adims ? join(',', (map {"*$_"} @adims),'') : '');
     $dtoks = ng_delimit($toks->mv(-1,0),
-			$args{boffsets}->slice(",*$NAttrs,*$N"),
+			$args{boffsets}->slice(",${adslice}*$N"),
 			$args{delims}->mv(-1,0),
 		       )->mv(0,-1);
   } else {
@@ -136,12 +137,10 @@ sub ngcofreq {
   }
   ##
   ##-- rotate components (maybe)
-  ##  + TODO: swap the guts of this out to another func
-  ##  (?) skip the @adims crap & just say we want toks(NAttrs,N,NToks) (?)
   my $NDToks = $dtoks->dim(-1);
   my ($ngvecs);
-  if ($args{norotate}) { $ngvecs=$dtoks->clump(-3); }
-  else                 { $ngvecs=ngrotate($dtoks->clump(-3)); }
+  if ($args{norotate}) { $ngvecs=$dtoks; }
+  else                 { $ngvecs=ng_rotate($dtoks); }
   ##
   ##-- sort 'em & count 'em
   my @ngvdims = $ngvecs->dims;
@@ -160,29 +159,31 @@ sub ngcofreq {
 ## N-Gram construction: rotation
 =pod
 
-=head2 ngrotate
+=head2 ng_rotate
 
-  Signature: (toks(NAttrs,N,NToks); [o]rtoks(NAttrs,N,NToks-N+1))
+  Signature: (toks(@adims,N,NToks); [o]rtoks(@adims,N,NToks-N+1))
 
 Create a co-occurrence matrix by rotating a (delimited) token vector $toks().
-Returns a matrix $rtoks() suitable for passing to ngcofreq().
+Returns a matrix $rtoks() suitable for passing to ng_cofreq().
 
 =cut
 
-*PDL::ngrotate = \&ngrotate;
-sub ngrotate {
+*PDL::ng_rotate = \&ng_rotate;
+sub ng_rotate {
   my ($toks,$rtoks) = @_;
 
-  barf("Usage: ngrotate (toks(NAttrs,N,NToks), [o]rtoks(NAttrs,N,NToks-N-1))")
+  barf("Usage: ng_rotate (toks(NAttrs,N,NToks), [o]rtoks(NAttrs,N,NToks-N-1))")
     if (!defined($toks));
 
-  my ($NAttrs,$N,$NToks) = $toks->dims;
-  $rtoks = zeroes($toks->type, $toks->dims) if (!defined($rtoks));
+  my @adims = $toks->dims();
+  $rtoks = zeroes($toks->type, @adims) if (!defined($rtoks));
+  my $NToks = pop(@adims);
+  my $N     = pop(@adims);
   my ($i);
   foreach $i (0..($N-1)) {
-    $rtoks->dice_axis(1,$i) .= $toks->dice_axis(1,$i)->mv(2,0)->rotate(-$i)->mv(0,2);
+    $rtoks->dice_axis(-2,$i) .= $toks->dice_axis(-2,$i)->xchg(-1,0)->rotate(-$i)->xchg(0,-1);
   }
-  $rtoks = $rtoks->xchg(2,0)->slice("0:-$N")->xchg(0,2);
+  $rtoks = $rtoks->xchg(-1,0)->slice("0:-$N")->xchg(-1,0);
 
   return $rtoks;
 }
