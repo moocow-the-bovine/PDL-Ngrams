@@ -8,19 +8,20 @@
 package PDL::Ngrams;
 use strict;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 ##======================================================================
 ## Export hacks
 use PDL;
 use PDL::Exporter;
-use PDL::Ngrams::ngutils;
+use PDL::VectorValued;
+use PDL::Ngrams::Utils;
 our @ISA = qw(PDL::Exporter);
 our @EXPORT_OK =
   (
-   (@PDL::Ngrams::ngutils::EXPORT_OK), ##-- inherited
+   (@PDL::Ngrams::Utils::EXPORT_OK), ##-- inherited
    qw(ng_cofreq ng_rotate),
-   qw(rleND rldND),
+   qw(_ng_qsortvec), ##-- compat
   );
 our %EXPORT_TAGS =
   (
@@ -69,6 +70,10 @@ PDL::Ngrams provides basic utilities for tracking N-grams over PDL vectors.
 =cut
 
 ##======================================================================
+## backwards-compatibility aliases
+*PDL::_ng_qsortvec = *_ng_qsortvec = \&PDL::vv_qsortvec;
+
+##======================================================================
 ## Run-Length Encoding/Decoding: n-dimensionl
 =pod
 
@@ -95,7 +100,7 @@ Keyword arguments (optional):
   delims   => $delims(@adims,N,NDelims)   ##-- delimiters to splice in at block boundaries
 
 Count co-occurrences (esp. N-Grams) over a token vector $toks.
-This function really just wraps ng_delimit(), ng_rotate(), _ng_qsortvec(), and rlevec().
+This function really just wraps ng_delimit(), ng_rotate(), vv_qsortvec(), and rlevec().
 
 =cut
 
@@ -128,7 +133,7 @@ sub ng_cofreq {
   ##
   ##-- sort 'em & count 'em
   my @ngvdims = $ngvecs->dims;
-  $ngvecs     = $ngvecs->clump(-2)->_ng_qsortvec();
+  $ngvecs     = $ngvecs->clump(-2)->vv_qsortvec();
   my ($ngfreq,$ngelts) = rlevec($ngvecs);
   my $ngwhich          = which($ngfreq);
   ##
@@ -174,100 +179,6 @@ sub ng_rotate {
 
 
 ##======================================================================
-## Run-Length Encoding/Decoding: n-dimensionl
-=pod
-
-=head1 Higher-Order Run-Length Encoding and Decoding
-
-The following functions generalize the builtin PDL functions rle() and rld()
-for higher-order "values".
-They can be used to count N-grams from raw sorted vectors.
-
-=cut
-
-##----------------------------------------------------------------------
-## rleND()
-=pod
-
-=head2 rleND
-
-=for sig
-
-  Signature: (data(@vdims,N); int [o]counts(N); [o]elts(@vdims,N))
-
-Run-length encode a set of (sorted) n-dimensional values.
-
-Generalization of rle() and rlevec():
-given set of values $data, generate a vector $counts with the number of occurrences of each element
-(where an "element" is a matrix of dimensions @vdims ocurring as a sequential run over the final dimension in $data),
-and a set of vectors $elts containing the elements which begin a run.
-
-Really just a wrapper for clump() and rlevec().
-
-See also: PDL::Slices::rle, PDL::Ngrams::ngutils::rlevec
-
-=cut
-
-*PDL::rleND = \&rleND;
-sub rleND {
-  my $data   = shift;
-  my @vdimsN = $data->dims;
-
-  ##-- construct output pdls
-  my $counts = $#_ >= 0 ? $_[0] : zeroes(long, $vdimsN[$#vdimsN]);
-  my $elts   = $#_ >= 1 ? $_[1] : zeroes($data->type, @vdimsN);
-
-  ##-- guts: call rlevec()
-  rlevec($data->clump($#vdimsN), $counts, $elts->clump($#vdimsN));
-
-  return ($counts,$elts);
-}
-
-##----------------------------------------------------------------------
-## rldND()
-=pod
-
-=head2 rldND
-
-=for sig
-
-  Signature: (int counts(N); elts(@vdims,N); [o]data(@vdims,N);)
-
-Run-length decode a set of (sorted) n-dimensional values.
-
-Generalization of rld() and rldvec():
-given a vector $counts() of the number of occurrences of each @vdims-dimensioned element,
-and a set $elts() of @vdims-dimensioned elements, run-length decode to $data().
-
-Really just a wrapper for clump() and rldvec().
-
-See also: PDL::Slices::rld, PDL::Ngrams::ngutils::rldvec
-
-=cut
-
-*PDL::rldND = \&rldND;
-sub rldND {
-  my ($counts,$elts) = (shift,shift);
-  my @vdimsN        = $elts->dims;
-
-  ##-- construct output pdl
-  my ($data);
-  if ($#_ >= 0) { $data = $_[0]; }
-  else {
-    my $size      = $counts->sumover->max; ##-- get maximum size for Nth-dimension for small encodings
-    my @countdims = $counts->dims;
-    shift(@countdims);
-    $data         = zeroes($elts->type, @vdimsN, @countdims);
-  }
-
-  ##-- guts: call rldvec()
-  rldvec($counts, $elts->clump($#vdimsN), $data->clump($#vdimsN));
-
-  return $data;
-}
-
-
-##======================================================================
 ## Delimit / Splice
 =pod
 
@@ -308,7 +219,6 @@ Remove block-delimiters (e.g. BOS,EOS) from a vector of delimited tokens.
 See L<PDL::Ngrams::ngutils/"ng_undelimit">.
 
 =cut
-
 
 
 1; ##-- make perl happy

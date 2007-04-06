@@ -1,6 +1,4 @@
-ngutils.xs
-ngutils.c
-ngutils.pm
+Utils.*
 *~
 .*~
 *.o

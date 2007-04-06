@@ -4,7 +4,7 @@
 ## Header Administrivia
 ##======================================================================
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 pp_setversion($VERSION);
 
 ##------------------------------------------------------
@@ -51,116 +51,6 @@ EOH
 ##======================================================================
 ## PDL::PP Wrappers
 ##======================================================================
-
-##======================================================================
-## Vector-Based Run-Length Encoding and Decoding
-##======================================================================
-
-pp_addpm(<<'EOPM');
-
-=pod
-
-=head1 Vector-Based Run-Length Encoding and Decoding
-
-=cut
-
-EOPM
-
-##------------------------------------------------------
-## rlevec()
-pp_def('rlevec',
-       Pars => 'c(M,N); int [o]a(N); [o]b(M,N)',
-       Code =><<'EOC',
-  int cn,bn=0, sn=$SIZE(N), matches;
-  loop (M) %{ $b(N=>0)=$c(N=>0); %}
-  $a(N=>0) = 1;
-  for (cn=1; cn<sn; cn++) {
-     matches=1;
-     loop (M) %{
-       if ($c(N=>cn) != $b(N=>bn)) {
-         matches=0;
-         break;
-       }
-     %}
-     if (matches) {
-       $a(N=>bn)++;
-     } else {
-       bn++;
-       loop (M) %{ $b(N=>bn) = $c(N=>cn); %}
-       $a(N=>bn) = 1;
-     }
-   }
-   for (bn++; bn<sn; bn++) {
-     $a(N=>bn) = 0;
-     loop (M) %{ $b(N=>bn) = 0; %}
-   }
-EOC
-       Doc =><<'EOD',
-Run-length encode a set of vectors.
-
-Akin to a higher-order rle(), for use with qsortvec().
-
-Given set of vectors $c, generate a vector $a with the number of occurrences of each element
-(where an "element" is a vector of length $M ocurring in $c),
-and a set of vectors $b containing the unique values.
-As for rle(), only the elements up to the first instance of 0 in $a should be considered.
-
-Can be used together with clump() to run-length encode "values" of arbitrary dimensions.
-Can be used together with rotate(), cat(), append(), and qsortvec() to count N-grams
-over a 1d PDL.
-
-See also: PDL::Slices::rle, PDL::Ufunc::qsortvec, PDL::Primitive::uniqvec
-
-EOD
-
-);
-
-
-##------------------------------------------------------
-## rldvec()
-pp_def('rldvec',
-       Pars => 'int a(N); b(M,N); [o]c(M,N)',
-       PMCode=><<'EOC',
-sub PDL::rldvec {
-  my ($a,$b) = @_; 
-  my ($c);
-  if ($#_==2) { $c=$_[2]; }
-  else {
-# XXX Need to improve emulation of threading in auto-generating c
-    my ($rowlen) = $b->dim(0);
-    my ($size) = $a->sumover->max;
-    my (@dims) = $a->dims;
-    shift(@dims);
-    $c = $b->zeroes($b->type,$rowlen,$size,@dims);
-  }
-  &PDL::_rldvec_int($a,$b,$c);
-  return $c;
-}
-EOC
-       Code =><<'EOC',
-  int i,nrows,bn,cn=0, sn=$SIZE(N);
-  for (bn=0; bn<sn; bn++) {
-    nrows = $a(N=>bn);
-    for (i=0; i<nrows; i++) {
-      loop (M) %{ $c(N=>cn) = $b(N=>bn); %}
-      cn++;
-    }
-   }
-EOC
-       Doc =><<'EOD'
-Run-length decode a set of vectors, akin to a higher-order rld().
-
-Given a vector $a() of the number of occurrences of each row, and a set $c()
-of row-vectors each of length $M, run-length decode to $c().
-
-Can be used together with clump() to run-length decode "values" of arbitrary dimensions.
-
-See also: PDL::Slices::rld.
-
-EOD
-
-  );
-
 
 ##======================================================================
 ## Delimiter Insertion and Removal
@@ -311,122 +201,6 @@ EOD
 );
 
 ##======================================================================
-## qsortvec drop-in replacement
-##  + adopted from patched $PDL_SRC_ROOT/Basic/Ufunc/ufunc.pd
-##======================================================================
-
-
-# Internal utility sorting routine for median/qsort/qsortvec routines.
-#
-# note: we export them to the PDL Core structure for use in
-#       other modules (eg Image2D)
-
-foreach (keys %PDL::Types::typehash) {
-    my $ctype = $PDL::Types::typehash{$_}{ctype};
-    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
-
-    pp_addhdr(<<"FOO"
-
-	/*******
-         * qsortvec helper routines
-	 *   --CED 21-Aug-2003
-	 */
-
-	/* Compare a vector in lexicographic order, returning the
-	 *  equivalent of "<=>". 
- 	 */
-      signed char pdl_ngcmpvec_$ppsym($ctype *a, $ctype *b, int n) {
-	int i;
-	for(i=0; i<n; a++,b++,i++) {
-	 if( *a < *b ) return -1;
-	 if( *a > *b ) return 1;
-	}
-	return 0;
-     }	
-
-      void pdl_ngqsortvec_$ppsym($ctype *xx, int n, int a, int b) {
-
-	int i,j, median_ind;
-
-	$ctype t;
-	i = a; 
-	j = b;
-
-	median_ind = (i+j)/2;
-
-	do {
-	  while( pdl_ngcmpvec_$ppsym( &(xx[n*i]), &(xx[n*median_ind]), n )  <  0 ) 
-		i++;
-	  while( pdl_ngcmpvec_$ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 ) 
-		j--;
-	  if(i<=j) {
-		int k;
-		$ctype *aa = &xx[n*i];
-	        $ctype *bb = &xx[n*j];
-		for( k=0; k<n; aa++,bb++,k++ ) {
-		  $ctype z;
-		  z = *aa;
-		  *aa = *bb;
-		  *bb = z;
-		}
-
-                if (median_ind==i)
-                  median_ind=j;
-                else if (median_ind==j)
-                  median_ind=i;
-
-	        i++; 
-		j--;
-	  }
-	} while (i <= j);
-
-	if (a < j)
-	  pdl_ngqsortvec_$ppsym( xx, n, a, j );
-	if (i < b)
-	  pdl_ngqsortvec_$ppsym( xx, n, i, b );
-      }
-
-FOO
-	     );
-}
-
-# when copying the data over to the temporary array,
-# ignore the bad values and then only send the number
-# of good elements to the sort routines
-#
-
-sub generic_ngqsortvec {
-    my $pdl = shift;
-    my $ndim = shift;
-    return '$TBSULQFD(pdl_ngqsortvec_B,pdl_ngqsortvec_S,pdl_ngqsortvec_U,
-             pdl_ngqsortvec_L,pdl_ngqsortvec_Q,pdl_ngqsortvec_F,pdl_ngqsortvec_D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
-}
-
-pp_def(
-    '_ng_qsortvec',
-    HandleBad => 1,
-    Pars => 'a(n,m); [o]b(n,m);',
-    Code => 
-    'int nn;
-     int nd;
-     loop(n,m) %{ $b() = $a(); %}
-     nn = ($COMP(__m_size))-1;
-     nd = $COMP(__n_size);
-    ' . generic_ngqsortvec('b','nd'),
-    Doc => '
-=for ref
-
-Drop-in replacement for qsortvec(),
-which is broken in the stock PDL-2.4.3 release.
-',
-    BadDoc =>
-'
-Vectors with bad components should be moved to the end of the array:
-',
-    ); # pp_def ngqsortvec
-
-
-##======================================================================
 ## Footer Administrivia
 ##======================================================================
 
@@ -442,9 +216,6 @@ pp_addpm(<<'EOPM');
 Perl by Larry Wall.
 
 PDL by Karl Glazebrook, Tuomas J. Lukka, Christian Soeller, and others.
-
-Code for rlevec() and rldvec() derived from the PDL builtin functions
-rle() and rld() in Basic/Slices/slices.pd.
 
 =cut
 

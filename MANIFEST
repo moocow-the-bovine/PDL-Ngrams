@@ -6,8 +6,8 @@ Ngrams.pm
 README.txt
 t/common.plt
 t/00_basic.t
-t/01_rlevec.t
-Ngrams/MANIFEST
-Ngrams/MANIFEST.SKIP
+t/02_delimit.t
+t/03_rotate.t
+t/04_cofreq.t
 Ngrams/Makefile.PL
 Ngrams/ngutils.pd

@@ -6,7 +6,8 @@ WriteMakefile(
 	      ABSTRACT     => 'N-Gram utilities for PDL',
 	      AUTHOR       => 'Bryan Jurish <moocow@ling.uni-potsdam.de>',
 	      PREREQ_PM => {
-			    PDL => '2.4.2', ##-- ensure PDL-ability
+			    'PDL' => '2.4.2',              ##-- ensure PDL-ability
+			    'PDL::VectorValued' => '0.01', ##-- for rlevec(), rleND(), vv_qsortvec()
 			   },
 	      realclean => {
 			    FILES => '*~ *.tmp README.txt',
@@ -38,7 +39,7 @@ sub MY::special_targets {
   #$inherited =~ s/^(\.SUFFIXES\s*:.*)$/$1 .pod .pm .man .txt .html;/
   $inherited .=
 "
-.SUFFIXES: .pm .pod .man .txt .html
+.SUFFIXES: .pm .pod .rpod .man .txt .html
 
 .pm.html:
 \tpod2html --outfile \$@ \$<
@@ -52,11 +53,12 @@ sub MY::special_targets {
 .pod.txt:
 \tpod2text \$< \$@
 
-#README.html: README.pod
-#\tpod2html --outfile \$@ \$<
-#
-#README.txt: README.pod
-#\tpod2text \$< \$@
+.rpod.html:
+\tpod2html --outfile \$@ \$<
+
+.rpod.txt:
+\tpod2text \$< \$@
+
 ";
   $inherited;
 }

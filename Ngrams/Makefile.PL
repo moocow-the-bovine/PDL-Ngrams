@@ -2,7 +2,7 @@ use PDL::Core::Dev;
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
-$package = ["ngutils.pd",ngutils,PDL::Ngrams::ngutils];
+$package = ["ngutils.pd","Utils","PDL::Ngrams::Utils"];
 %hash = pdlpp_stdargs($package);
 
 $hash{AUTHOR} = 'Bryan Jurish';

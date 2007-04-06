@@ -1,2 +1,9 @@
+v0.03 Fri, 06 Apr 2007 18:15:49 +0200
+	+ compiled PDL::PP code now in module Ngrams::Utils
+	+ moved general vector utilities to new module PDL::VectorValued, added dependency
+
+v0.02 2007-03-22 00:01:04 +0100
+	+ moved PDL::PP code to Ngrams/ngutils.pd
+	
 v0.01 Mon, 19 Mar 2007 23:21:21 +0100 (moocow)
 	+ initial version

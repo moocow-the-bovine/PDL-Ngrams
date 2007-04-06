@@ -14,11 +14,9 @@ PDL::Ngrams - Basic N-Gram utilities for PDL
 
 Tested version 2.4.3
 
-Requires a working qsortvec(), which is broken in the stock
-PDL v2.4.3.  Chris Marshall submitted a patch to fix the
-bug, which is available here (the patch, not the bug):
+=item * PDL::VectorValued
 
- http://sourceforge.net/tracker/index.php?func=detail&aid=1548824&group_id=612&atid=300612
+Should be available from the same place you got this module.
 
 =back
 
