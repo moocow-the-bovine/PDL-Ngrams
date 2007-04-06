@@ -1,0 +1,16 @@
+Utils.*
+*~
+.*~
+*.o
+*.a
+*.so
+*.bs
+*.html
+*.old
+*.gz
+README.txt
+pm_to_blib
+blib
+Makefile
+pdl-core
+xs-cookbook
