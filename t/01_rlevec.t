@@ -9,6 +9,7 @@ use Test;
 do "$TEST_DIR/common.plt";
 use PDL;
 use PDL::Ngrams;
+use PDL::VectorValued;
 
 BEGIN { plan tests=>9, todo=>[]; }
 
