@@ -7,7 +7,7 @@ WriteMakefile(
 	      AUTHOR       => 'Bryan Jurish <moocow@ling.uni-potsdam.de>',
 	      PREREQ_PM => {
 			    'PDL' => '2.4.2',              ##-- ensure PDL-ability
-			    'PDL::VectorValued' => '0.01', ##-- for rlevec(), rleND(), vv_qsortvec()
+			    'PDL::VectorValued' => undef,  ##-- for rlevec(), rleND(), vv_qsortvec()
 			   },
 	      realclean => {
 			    FILES => '*~ *.tmp README.txt',

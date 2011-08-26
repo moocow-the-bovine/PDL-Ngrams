@@ -1,7 +1,7 @@
 ##-*- Mode: CPerl -*-
 ##
 ## File: PDL::Ngrams.pm
-## Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+## Author: Bryan Jurish <moocow@cpan.org>
 ## Description: N-Gram utilities for PDL
 ##======================================================================
 
