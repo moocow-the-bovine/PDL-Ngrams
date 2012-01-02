@@ -1,9 +1,10 @@
 use PDL::Core::Dev;
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
+require "../pdlmaker.plm";
 
 $package = ["ngutils.pd","Utils","PDL::Ngrams::Utils"];
-%hash = pdlpp_stdargs($package);
+%hash = pdlmaker_init($package);
 
 $hash{AUTHOR} = 'Bryan Jurish';
 $hash{ABSTRACT} = 'Low-level N-Gram utilities for PDL';
@@ -16,62 +17,3 @@ $hash{DIR} = [];
 $hash{realclean}{FILES} .= '*~ *.tmp README.txt';
 
 WriteMakefile(%hash);
-
-sub MY::depend {
-  package MY;
-  my $inherited = shift->SUPER::depend(@_);
-  if (0) {
-    $inherited .= (
-		   "\n\n"
-		   ."dist: README.txt\n"
-		   ."\n"
-		   ."create_distdir: README.txt\n"
-		   ."\n"
-		   ."distcheck: README.txt\n"
-		   ."\n"
-		   ."manicheck: README.txt\n"
-		   ."\n"
-		  );
-  }
-  $inherited;
-}
-
-sub MY::special_targets {
-  package MY;
-  my $inherited = shift->SUPER::special_targets(@_);
-  #$inherited =~ s/^(\.SUFFIXES\s*:.*)$/$1 .pod .pm .man .txt .html;/
-  $inherited .=
-"
-.SUFFIXES: .pm .pod .man .txt .html
-
-.pm.html:
-\tpod2html --outfile \$@ \$<
-
-.pm.txt:
-\tpod2text \$< \$@
-
-.pod.html:
-\tpod2html --outfile \$@ \$<
-
-.pod.txt:
-\tpod2text \$< \$@
-
-#README.html: README.pod
-#\tpod2html --outfile \$@ \$<
-#
-#README.txt: README.pod
-#\tpod2text \$< \$@
-";
-  $inherited;
-}
-
-
-sub MY::top_targets {
-  package MY;
-  my $inherited = shift->SUPER::top_targets(@_);
-  $inherited;
-}
-
-sub MY::postamble {
-  pdlpp_postamble($package);
-}

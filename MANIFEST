@@ -10,4 +10,5 @@ t/02_delimit.t
 t/03_rotate.t
 t/04_cofreq.t
 Ngrams/Makefile.PL
-Ngrams/ngutils.pd
+Ngrams/ngutils.pd		# Ngrams/Utils.pm
+Ngrams/Utils.pm
