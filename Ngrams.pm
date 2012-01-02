@@ -8,7 +8,7 @@
 package PDL::Ngrams;
 use strict;
 
-our $VERSION = 0.04;
+our $VERSION = "0.04_001";
 
 ##======================================================================
 ## Export hacks
