@@ -8,7 +8,7 @@
 package PDL::Ngrams;
 use strict;
 
-our $VERSION = "0.04_001";
+our $VERSION = "0.04_002";
 
 ##======================================================================
 ## Export hacks
@@ -170,7 +170,11 @@ sub ng_rotate {
   my $N     = pop(@adims);
   my ($i);
   foreach $i (0..($N-1)) {
-    $rtoks->dice_axis(-2,$i) .= $toks->dice_axis(-2,$i)->xchg(-1,0)->rotate(-$i)->xchg(0,-1);
+    ##-- the following line pukes on cpan testers 5.15.x with: "Can't modify non-lvalue subroutine call at ..."
+    #$rtoks->dice_axis(-2,$i) .= $toks->dice_axis(-2,$i)->xchg(-1,0)->rotate(-$i)->xchg(0,-1);
+    ##
+    my $rtoks_i = $rtoks->dice_axis(-2,$i);
+    $rtoks_i .= $toks->dice_axis(-2,$i)->xchg(-1,0)->rotate(-$i)->xchg(0,-1);
   }
   $rtoks = $rtoks->xchg(-1,0)->slice("0:-$N")->xchg(-1,0);
 
