@@ -8,7 +8,7 @@
 package PDL::Ngrams;
 use strict;
 
-our $VERSION = "0.04_002";
+our $VERSION = "0.05";
 
 ##======================================================================
 ## Export hacks
@@ -202,7 +202,7 @@ from a PDL vector, before rsp. after constructing a vector of N-gram vectors.
 
 =for sig
 
-  Signature: (toks(NToks); int boffsets(NBlocks); delims(NDelims); [o]dtoks(NDToks))
+  Signature: (toks(NToks); indx boffsets(NBlocks); delims(NDelims); [o]dtoks(NDToks))
 
 Add block-delimiters (e.g. BOS,EOS) to a vector of raw tokens.
 
@@ -216,7 +216,7 @@ See L<PDL::Ngrams::ngutils/"ng_delimit">.
 
 =head2 ng_undelimit
 
-  Signature: (dtoks(NDToks); int boffsets(NBlocks); int NDelims(); [o]toks(NToks))
+  Signature: (dtoks(NDToks); indx boffsets(NBlocks); int NDelims(); [o]toks(NToks))
 
 Remove block-delimiters (e.g. BOS,EOS) from a vector of delimited tokens.
 
@@ -251,13 +251,13 @@ perl by Larry Wall.
 
 =head1 AUTHOR
 
-Bryan Jurish E<lt>jurish@ling.uni-potsdam.deE<gt>
+Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 
 PDL by Karl Glazebrook, Tuomas J. Lukka, Christian Soeller, and others.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007, Bryan Jurish.  All rights reserved.
+Copyright (c) 2007-2013, Bryan Jurish.  All rights reserved.
 
 This package is free software.  You may redistribute it
 and/or modify it under the same terms as Perl itself.

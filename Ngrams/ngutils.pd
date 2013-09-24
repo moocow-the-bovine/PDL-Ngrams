@@ -4,8 +4,12 @@
 ## Header Administrivia
 ##======================================================================
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 pp_setversion($VERSION);
+
+use PDL::VectorValued::Dev;
+my $INDX = PDL::VectorValued::Dev::vv_indx_sig();
+
 
 ##------------------------------------------------------
 ## pm additions
@@ -39,6 +43,7 @@ EOPM
 
 ##------------------------------------------------------
 ## Includes / defines
+pp_addhdr( PDL::VectorValued::Dev::vv_indx_typedef() );
 pp_addhdr(<<'EOH');
 EOH
 
@@ -69,13 +74,13 @@ EOPM
 ##------------------------------------------------------
 ## ng_delimit()
 pp_def('ng_delimit',
-       Pars       => 'toks(NToks); int boffsets(NBlocks); delims(NDelims); [o]dtoks(NDToks)',
+       Pars       => "toks(NToks); $INDX boffsets(NBlocks); delims(NDelims); [o]dtoks(NDToks)",
        #OtherPars  => 'int ndtoks => NDToks',
        PMCode=>
 <<'EOPC',
 sub PDL::ng_delimit {
   my ($toks,$boffsets,$delims,$dtoks,$ndtoks) = @_;
-  barf('Usage: ng_delimit(toks(NToks), int boffsets(NBlocks), delims(NDelims), [o]dtoks(NDToks), ndtoks=>NDToks)')
+  barf('Usage: ng_delimit(toks(NToks), indx boffsets(NBlocks), delims(NDelims), [o]dtoks(NDToks), ndtoks=>NDToks)')
     if (grep {!defined($_)} ($toks,$boffsets,$delims));
   ##
   ##-- basic data
@@ -99,9 +104,9 @@ sub PDL::ng_delimit {
 EOPC
        Code =>
 <<'EOC',
- int szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDelims=$SIZE(NDelims), szNDToks=$SIZE(NDToks);
- int blocki=0,toki=0,dtoki=0,delimi;
- int nextBlockToki = $boffsets(NBlocks=>0);
+ PDL_Indx szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDelims=$SIZE(NDelims), szNDToks=$SIZE(NDToks);
+ PDL_Indx blocki=0,toki=0,dtoki=0,delimi;
+ PDL_Indx nextBlockToki = $boffsets(NBlocks=>0);
  while (toki < szNToks) {
    while (toki==nextBlockToki) {
      //-- block boundary: insert delimiters
@@ -142,12 +147,12 @@ EOD
 ##------------------------------------------------------
 ## ng_undelimit()
 pp_def('ng_undelimit',
-       Pars       => 'dtoks(NDToks); int boffsets(NBlocks); int NDelims(); [o]toks(NToks);',
+       Pars       => "dtoks(NDToks); $INDX boffsets(NBlocks); int NDelims(); [o]toks(NToks);",
        PMCode=>
 <<'EOPC',
 sub PDL::ng_undelimit {
   my ($dtoks,$boffsets,$NDelims,$toks) = @_;
-  barf('Usage: ng_delimit(dtoks(NDToks), int boffsets(NBlocks), NDelims(), [o]toks(NToks))')
+  barf('Usage: ng_delimit(dtoks(NDToks), indx boffsets(NBlocks), NDelims(), [o]toks(NToks))')
     if (grep {!defined($_)} ($dtoks,$boffsets,$NDelims));
   ##
   ##-- $toks: maybe allocate
@@ -167,9 +172,9 @@ sub PDL::ng_undelimit {
 EOPC
        Code=>
 <<'EOC',
- int szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDToks=$SIZE(NDToks), szNDelims=$NDelims();
- int blocki=0,toki=0,dtoki=0,delimi;
- int nextBlockToki = $boffsets(NBlocks=>0);
+ PDL_Indx szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDToks=$SIZE(NDToks), szNDelims=$NDelims();
+ PDL_Indx blocki=0,toki=0,dtoki=0,delimi;
+ PDL_Indx nextBlockToki = $boffsets(NBlocks=>0);
  while (dtoki < szNDToks) {
    while (toki==nextBlockToki) {
      //-- block boundary: skip delimiters
@@ -234,7 +239,7 @@ Probably many.
 
 =head1 AUTHOR
 
-Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>
+Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 
 =head2 Copyright Policy
 
