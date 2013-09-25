@@ -5,11 +5,11 @@ pdlmaker_init();
 ##-- common prerequisites
 my %prereq = (
 	      'PDL' => 0,
-	      'PDL::VectorValued' => 0, #'0.07.000',    ##-- for rlevec(), rleND(), vv_qsortvec(), vv_indx()
+	      'PDL::VectorValued::Version' => '0.07',    ##-- for rlevec(), rleND(), vv_qsortvec(), vv_indx_sig(), vv_indx_typedef()
 	     );
 WriteMakefile(
 	      NAME         => 'PDL::Ngrams',
-	      VERSION_FROM => 'Ngrams.pm',
+	      VERSION_FROM => 'Ngrams/ngutils.pd',
 	      ABSTRACT     => 'N-Gram utilities for PDL',
 	      AUTHOR       => 'Bryan Jurish <moocow@cpan.org>',
 	      PREREQ_PM    => {%prereq},

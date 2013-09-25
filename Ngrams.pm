@@ -8,8 +8,6 @@
 package PDL::Ngrams;
 use strict;
 
-our $VERSION = "0.05";
-
 ##======================================================================
 ## Export hacks
 use PDL;
@@ -27,6 +25,8 @@ our %EXPORT_TAGS =
   (
    Func => [@EXPORT_OK],               ##-- respect PDL conventions (hopefully)
   );
+
+our $VERSION = $PDL::Ngrams::Utils::VERSION;
 
 ##======================================================================
 ## pod: header

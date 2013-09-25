@@ -4,11 +4,11 @@
 ## Header Administrivia
 ##======================================================================
 
-our $VERSION = '0.05';
+our $VERSION = '0.05.001';
 pp_setversion($VERSION);
 
 use PDL::VectorValued::Dev;
-my $INDX = PDL::VectorValued::Dev::vv_indx_sig();
+my $INDX = (PDL::VectorValued::Dev->can('vv_indx_sig') || sub { 'int' })->();
 
 
 ##------------------------------------------------------
@@ -43,8 +43,12 @@ EOPM
 
 ##------------------------------------------------------
 ## Includes / defines
-pp_addhdr( PDL::VectorValued::Dev::vv_indx_typedef() );
+pp_addhdr( (PDL::VectorValued::Dev->can('vv_indx_typedef') || sub { "typedef PDL_Long NG_Indx;\n" })->() );
 pp_addhdr(<<'EOH');
+#ifndef NG_Indx
+typedef PDL_Indx NG_Indx;
+#endif
+
 EOH
 
 
@@ -104,9 +108,9 @@ sub PDL::ng_delimit {
 EOPC
        Code =>
 <<'EOC',
- PDL_Indx szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDelims=$SIZE(NDelims), szNDToks=$SIZE(NDToks);
- PDL_Indx blocki=0,toki=0,dtoki=0,delimi;
- PDL_Indx nextBlockToki = $boffsets(NBlocks=>0);
+ NG_Indx szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDelims=$SIZE(NDelims), szNDToks=$SIZE(NDToks);
+ NG_Indx blocki=0,toki=0,dtoki=0,delimi;
+ NG_Indx nextBlockToki = $boffsets(NBlocks=>0);
  while (toki < szNToks) {
    while (toki==nextBlockToki) {
      //-- block boundary: insert delimiters
@@ -172,9 +176,9 @@ sub PDL::ng_undelimit {
 EOPC
        Code=>
 <<'EOC',
- PDL_Indx szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDToks=$SIZE(NDToks), szNDelims=$NDelims();
- PDL_Indx blocki=0,toki=0,dtoki=0,delimi;
- PDL_Indx nextBlockToki = $boffsets(NBlocks=>0);
+ NG_Indx szNToks=$SIZE(NToks), szNBlocks=$SIZE(NBlocks), szNDToks=$SIZE(NDToks), szNDelims=$NDelims();
+ NG_Indx blocki=0,toki=0,dtoki=0,delimi;
+ NG_Indx nextBlockToki = $boffsets(NBlocks=>0);
  while (dtoki < szNDToks) {
    while (toki==nextBlockToki) {
      //-- block boundary: skip delimiters
