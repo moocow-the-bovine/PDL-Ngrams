@@ -1,4 +1,4 @@
-v0.05 - v0.06001 Tue, 24 Sep 2013 13:44:43 +0200
+v0.05003 Tue, 24 Sep 2013 13:44:43 +0200
 	+ added support for PDL_Index type (PDL >= v2.007)
 	+ changed version convention to jive more or less with both pp_setversion() and version->parse()
 
