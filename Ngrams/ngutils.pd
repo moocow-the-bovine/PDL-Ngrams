@@ -4,7 +4,7 @@
 ## Header Administrivia
 ##======================================================================
 
-our $VERSION = '0.05003';
+our $VERSION = '0.06001';
 pp_setversion($VERSION);
 
 use PDL::VectorValued::Dev;
