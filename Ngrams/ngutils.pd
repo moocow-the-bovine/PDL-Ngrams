@@ -4,8 +4,8 @@
 ## Header Administrivia
 ##======================================================================
 
-our $VERSION = '0.05.001';
-pp_setversion($VERSION);
+our $VERSION = '0.05.002';
+pp_setversion("version->parse($VERSION)");
 
 use PDL::VectorValued::Dev;
 my $INDX = (PDL::VectorValued::Dev->can('vv_indx_sig') || sub { 'int' })->();
