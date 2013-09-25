@@ -5,7 +5,7 @@ pdlmaker_init();
 ##-- common prerequisites
 my %prereq = (
 	      'PDL' => 0,
-	      'PDL::VectorValued::Version' => '0.07',    ##-- for rlevec(), rleND(), vv_qsortvec(), vv_indx_sig(), vv_indx_typedef()
+	      'PDL::VectorValued::Version' => '0.07001',    ##-- for rlevec(), rleND(), vv_qsortvec(), vv_indx_sig(), vv_indx_typedef()
 	     );
 WriteMakefile(
 	      NAME         => 'PDL::Ngrams',
