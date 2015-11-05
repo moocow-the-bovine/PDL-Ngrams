@@ -21,3 +21,4 @@
 \.html$
 \.tmp$
 ^#Makefile#$
+^MYMETA\.

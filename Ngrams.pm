@@ -133,7 +133,18 @@ sub ng_cofreq {
   ##
   ##-- sort 'em & count 'em
   my @ngvdims = $ngvecs->dims;
-  $ngvecs     = $ngvecs->clump(-2)->vv_qsortvec();
+  ##
+  ## ERRORS on next line (RT bug #108472) for t/04_cofreq.t (PDL-Ngrams v0.05003, PDL v2.0.14, Thu, 05 Nov 2015 10:28:13 +0100)
+  ##  + Error message: 'Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable) at ../blib/lib/PDL/Ngrams.pm line 136.'
+  ##  + original line (v0.05003): $ngvecs = $ngvecs->clump(-2)->vv_qsortvec();
+  ##  + CASE 1:
+  ##    - input $ngvecs has dims [2,13]
+  ##    - $ngvecs->clump(-2) should also have dims [2,13], but winds up with dims [1,0,0,2,13], which is just bizarre
+  ##  + CASE 2:
+  ##    - $ngvecs has dims [3,2,13]
+  ##    - $ngvecs->clump(-2) should have dims [6,13], but gets dims [1,0,0,2,13], which apparently leads to 'false alloc' error in later comparisons
+  ##  + workaround: compute non-negative argument for clump() as (1+$ngvecs->ndims-2): this seems to work
+  $ngvecs     = $ngvecs->clump(1+$ngvecs->ndims-2)->vv_qsortvec();
   my ($ngfreq,$ngelts) = rlevec($ngvecs);
   my $ngwhich          = which($ngfreq);
   ##

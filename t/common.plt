@@ -25,6 +25,12 @@ sub ulistok {
   isok($label,join(',',sort(@$l1)),join(',',sort(@$l2)));
 }
 
+# cmp_dims($got_pdl,$expect_pdl)
+sub cmp_dims {
+  my ($p1,$p2) = @_;
+  return $p1->ndims==$p2->ndims && all(pdl(long,[$p1->dims])==pdl(long,[$p2->dims]));
+}
+
 print "common.plt loaded.\n";
 
 1;
