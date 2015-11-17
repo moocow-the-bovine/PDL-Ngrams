@@ -1,8 +1,10 @@
-^Ngrams/Utils.*
+^Ngrams/Utils\.
+^Ngrams/MANIFEST
 ~$
 \.bs$
 \.o$
 \.old$
+\.gz$
 \.cvsignore$
 \bCVS\b
 \bpm_to_blib$

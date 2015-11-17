@@ -1,6 +1,7 @@
 v0.07 Tue, 17 Nov 2015 09:41:47 +0100 moocow
 	+ Makefile.PL workaround for PDL::VectorValued(::Version) strangeness on cpantesters
 	+ see http://sourceforge.net/p/pdl/mailman/message/34623263/ ("headaches with indirect PDL-related dependencies on cpantesters", 2015-11-16 13:16:44)
+	+ cleaned up MANIFEST, added missing t/01_rlevec.t
 
 v0.06 Thu, 05 Nov 2015 10:27:18 +0100 moocow
 	+ workaround for clump(-N) bug in PDL-v2.014: compute non-negative clump() argument in PDL::Ngrams::ng_cofreq()
