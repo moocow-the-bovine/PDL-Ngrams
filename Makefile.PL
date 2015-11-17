@@ -14,7 +14,7 @@ my %prereq = (
 use version;
 require 'PDL/VectorValued.pm'
   or die("$0: ERROR: could not require PDL/VectorValued.pm");
-die("$0: ERROR: unsupported PDL::VectorValued \$PDL::VectorValued::VERSION $PDL::VectorValued::VERSION (need at least $prereq{PDL::VectorValued::Version})")
+die("$0: ERROR: unsupported \$PDL::VectorValued::VERSION $PDL::VectorValued::VERSION (need at least $prereq{PDL::VectorValued::Version})")
   if (version->parse($PDL::VectorValued::VERSION) < version->parse($prereq{'PDL::VectorValued::Version'}));
 
 WriteMakefile(
