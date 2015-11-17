@@ -1,5 +1,5 @@
 # -*- Mode: CPerl -*-
-# t/02_delimit.t: test ng_delimit(), ng_undelimit()
+# t/01_delimit.t: test ng_delimit(), ng_undelimit()
 
 $TEST_DIR = './t';
 #use lib qw(../blib/lib ../blib/arch); $TEST_DIR = '.'; # for debugging
@@ -80,5 +80,5 @@ isok("ng_undelimit(toks:2d,offsets:2d,nDelims:2)", all($udtoks2_2d_sl==$toks2d))
 
 
 print "\n";
-# end of t/02_delimit.t
+# end of t/01_delimit.t
 

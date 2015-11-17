@@ -1,5 +1,5 @@
 # -*- Mode: CPerl -*-
-# t/04_cofreq.t: test ng_cofreq
+# t/03_cofreq.t: test ng_cofreq
 
 $TEST_DIR = './t';
 #use lib qw(../blib/lib ../blib/arch); $TEST_DIR = '.'; # for debugging
@@ -51,5 +51,5 @@ isok("ng_cofreq(toks:2d,N:2,+delims):elts:vals", all($ngelts==$ngelts_2d_n2_want
 
 
 print "\n";
-# end of t/04_cofreq.t
+# end of t/03_cofreq.t
 

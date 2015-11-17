@@ -1,5 +1,5 @@
 # -*- Mode: CPerl -*-
-# t/03_rotate.t: test ng_rotate
+# t/02_rotate.t: test ng_rotate
 
 $TEST_DIR = './t';
 #use lib qw(../blib/lib ../blib/arch); $TEST_DIR = '.'; # for debugging
@@ -45,5 +45,5 @@ our $rtoks2d_n2_want = pdl(long, [ [[1,10],[1,10]],
 isok("ng_rotate(toks:2d,N:2): ", all($rtoks2d_n2==$rtoks2d_n2_want));
 
 print "\n";
-# end of t/03_rotate.t
+# end of t/02_rotate.t
 

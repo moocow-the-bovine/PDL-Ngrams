@@ -7,10 +7,9 @@ Ngrams.pm
 README.txt
 t/common.plt
 t/00_basic.t
-t/01_rlevec.t
-t/02_delimit.t
-t/03_rotate.t
-t/04_cofreq.t
+t/01_delimit.t
+t/02_rotate.t
+t/03_cofreq.t
 Ngrams/Makefile.PL
 Ngrams/ngutils.pd		# Ngrams/Utils.pm
 Ngrams/Utils.pm
