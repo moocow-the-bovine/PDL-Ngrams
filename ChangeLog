@@ -1,3 +1,8 @@
+v0.08 Mon, 23 Nov 2015 12:19:25 +0100 moocow
+	+ no real joy with Makefile.PL workaround (UNKNOWN results are still pretty wonky)
+	+ updating PDL::VectorValued to use shared $VERSION via perl-reversion script from module Perl::Version
+	+ PDL::Ngrams can now depend directly on PDL::VectorValued
+
 v0.07 Tue, 17 Nov 2015 09:41:47 +0100 moocow
 	+ Makefile.PL workaround for PDL::VectorValued(::Version) strangeness on cpantesters
 	+ see http://sourceforge.net/p/pdl/mailman/message/34623263/ ("headaches with indirect PDL-related dependencies on cpantesters", 2015-11-16 13:16:44)

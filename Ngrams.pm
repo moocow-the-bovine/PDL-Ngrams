@@ -26,7 +26,7 @@ our %EXPORT_TAGS =
    Func => [@EXPORT_OK],               ##-- respect PDL conventions (hopefully)
   );
 
-our $VERSION = $PDL::Ngrams::Utils::VERSION;
+our $VERSION = '0.08'; ##-- use perl-reversion to update
 
 ##======================================================================
 ## pod: header
@@ -268,7 +268,7 @@ PDL by Karl Glazebrook, Tuomas J. Lukka, Christian Soeller, and others.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007-2013, Bryan Jurish.  All rights reserved.
+Copyright (c) 2007-2015, Bryan Jurish.  All rights reserved.
 
 This package is free software.  You may redistribute it
 and/or modify it under the same terms as Perl itself.
