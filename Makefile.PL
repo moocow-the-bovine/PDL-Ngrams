@@ -6,6 +6,7 @@ pdlmaker_init();
 my %prereq = (
 	      'PDL' => 0,
 	      'PDL::VectorValued' => '1.0.4',    ##-- for rlevec(), rleND(), vv_qsortvec(), vv_indx_sig(), vv_indx_typedef()
+	      'Test::More' => 0,
 	     );
 
 ##-- strange bogus cpantesters error messages

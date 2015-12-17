@@ -1,3 +1,9 @@
+v0.09 Thu, 17 Dec 2015 11:15:55 +0100 moocow
+	+ fixed wrongly succeeding bogus tests with unary ok()
+	  - tests now use Test::More and re-factored common test subroutines
+	+ pdlmaker.plm doesn't distribute generated PM files any more (PDL now does this for us)
+	+ added vector-cosine similarity vv_vcos()
+
 v0.08 Mon, 23 Nov 2015 12:19:25 +0100 moocow
 	+ no real joy with Makefile.PL workaround (UNKNOWN results are still pretty wonky)
 	+ updating PDL::VectorValued to use shared $VERSION via perl-reversion script from module Perl::Version
@@ -8,7 +14,7 @@ v0.07 Tue, 17 Nov 2015 09:41:47 +0100 moocow
 	+ see http://sourceforge.net/p/pdl/mailman/message/34623263/ ("headaches with indirect PDL-related dependencies on cpantesters", 2015-11-16 13:16:44)
 	+ cleaned up MANIFEST
 	+ cleaned up test directory
-	  - removed bogus t/01_rlevec.t (really just a stale dup PDL::VectorValued test-file of same name)
+	  - removed bogus t/01_rlevec.t (really just a stale dup of PDL::VectorValued test-file of same name)
 	  - renamed other test files for gapless enumeration
 
 v0.06 Thu, 05 Nov 2015 10:27:18 +0100 moocow
