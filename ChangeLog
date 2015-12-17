@@ -2,7 +2,6 @@ v0.09 Thu, 17 Dec 2015 11:15:55 +0100 moocow
 	+ fixed wrongly succeeding bogus tests with unary ok()
 	  - tests now use Test::More and re-factored common test subroutines
 	+ pdlmaker.plm doesn't distribute generated PM files any more (PDL now does this for us)
-	+ added vector-cosine similarity vv_vcos()
 
 v0.08 Mon, 23 Nov 2015 12:19:25 +0100 moocow
 	+ no real joy with Makefile.PL workaround (UNKNOWN results are still pretty wonky)
